@@ -1,7 +1,9 @@
+require_relative './base'
+
 module Stats
   module Server
     module Linux
-      class Command
+      class Command < Base
         def release
           `lsb_release -ds ` + `/bin/uname -r`.chomp
         end

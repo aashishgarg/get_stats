@@ -1,9 +1,11 @@
+require_relative './base'
+
 module Stats
   module Server
     module Linux
-      class Instance
+      class Instance < Base
         # --- Attribute Accessors --- #
-        attr_accessor :processes, :sanitizer, :pids, :ports, :repositories, :command, :result
+        attr_accessor :processes, :pids, :ports, :repositories, :command, :sanitizer
 
         def initialize(processes, sanitizer, command, result)
           @pids = []

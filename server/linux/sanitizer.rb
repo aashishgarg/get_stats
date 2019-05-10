@@ -1,7 +1,9 @@
+require_relative './base'
+
 module Stats
   module Server
     module Linux
-      class Sanitizer
+      class Sanitizer < Base
         def repository_path(location, pid)
           location.delete(pid).delete("\n").delete(' :')
         end
