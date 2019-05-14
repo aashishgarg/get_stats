@@ -20,7 +20,7 @@ module Stats
         end
 
         def redis_pids
-          `sudo -A netstat -nlp | grep redis | grep 'tcp' | awk '{print $4 }'`
+          `export SUDO_ASKPASS=#{ask_pass_path};sudo -A netstat -nlp | grep redis | grep 'tcp' | awk '{print $4 }'`
         end
 
         def start_time(pid)
@@ -32,11 +32,11 @@ module Stats
         end
 
         def port(pid)
-          `export SUDO_ASKPASS=#{ask_pass_path};sudo netstat -tulnp | grep #{pid} | awk '{print $4}'`
+          `export SUDO_ASKPASS=#{ask_pass_path};sudo -A netstat -tulnp | grep #{pid} | awk '{print $4}'`
         end
 
         def p_name(pid)
-          `export SUDO_ASKPASS=#{ask_pass_path};sudo netstat -tulnp | grep #{pid} `
+          `export SUDO_ASKPASS=#{ask_pass_path};sudo -A netstat -tulnp | grep #{pid} `
         end
       end
     end

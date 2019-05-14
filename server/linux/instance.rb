@@ -1,3 +1,4 @@
+require 'json'
 require_relative './base'
 
 module Stats
@@ -23,6 +24,10 @@ module Stats
                 start_time: command.start_time(pid)
             }
           end
+        end
+
+        def print_result
+          File.open("/home/ubuntu/result.json", 'w') {|f| f.write(JSON.pretty_generate(result)) }
         end
       end
     end

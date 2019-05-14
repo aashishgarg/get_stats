@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require_relative './base'
 require_relative './server/linux/instance'
 require_relative './server/linux/command'
@@ -31,9 +33,7 @@ module Stats
     def get_sanitizer_obj
       Server::Linux::Sanitizer.new(command)
     end
-
-    def print_result
-      puts result
-    end
   end
 end
+
+Stats::Instance.new('Linux', "/home/ubuntu/SudoPass.sh")
