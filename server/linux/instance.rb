@@ -19,8 +19,8 @@ module Stats
         def build_result
           pids.each do |pid|
             root = sanitizer.repository_path(pid)
-            model = Stats::Project::Parser::Model.new(root)
-            controller = Stats::Project::Parser::Controller.new(root)
+            model = Stats::Project::Parser::Files::Model.new(root)
+            controller = Stats::Project::Parser::Files::Controller.new(root)
 
             result[:processes] << {
                 pid: pid,
