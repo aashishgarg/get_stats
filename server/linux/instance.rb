@@ -5,29 +5,21 @@ module Stats
     module Linux
       class Instance < Base
         # --- Attribute Accessors --- #
-        attr_accessor :processes, :pids, :ports, :repositories, :command, :sanitizer
+        attr_accessor :pids, :command, :sanitizer
 
-        def initialize(processes, sanitizer, command, result)
-          @pids = []
-          @ports = []
-          @repositories = []
-          @processes = processes
+        def initialize(pids, sanitizer, command, result)
+          @pids = pids
           @sanitizer = sanitizer
           @command = command
           @result = result
         end
 
         def build_result
-          nested_array = sanitizer.processes(processes)
-          nested_array.each do |array|
-            pid, port = *array
-            pids << pid
-            ports << port
-            repositories << command.repository(pid)
+          pids.each do |pid|
             result[:processes] << {
                 pid: pid,
-                port: port,
-                repository: sanitizer.repository_path(command.repository(pid), pid),
+                port: command.port(pid),
+                repository: sanitizer.repository_path(pid),
                 start_time: command.start_time(pid)
             }
           end

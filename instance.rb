@@ -6,29 +6,34 @@ require_relative './server/linux/sanitizer'
 module Stats
   class Instance < Base
     # --- Attribute Accessors
-    attr_accessor :processes, :server, :result, :repositories, :ports, :pids, :release, :command, :sanitizer
+    attr_accessor :ask_pass_path, :server, :result, :pids, :command, :sanitizer
 
-    def initialize(type)
+    def initialize(type, ask_pass_path = nil)
+      @ask_pass_path = ask_pass_path
       @command = get_command_obj
-      @processes = command.active_processes
       @sanitizer = get_sanitizer_obj
-      @release = command.release
-      @result = { server_release: sanitizer.perform(release), processes: [] }
+      @pids = [sanitizer.server_pids, sanitizer.redis_pids].flatten.uniq
+      @result = { server_release: sanitizer.perform(command.os_release), processes: [] }
       @server = get_instance(type)
-      @server.build_result if server
+      server.build_result if server
+      server.print_result if server
     end
 
     def get_instance(type)
       instance_type = type == 'Linux' ? Server::Linux::Instance : nil
-      instance_type.nil? ? nil : instance_type.new(processes, sanitizer, command, result)
+      instance_type.nil? ? nil : instance_type.new(pids, sanitizer, command, result)
     end
 
     def get_command_obj
-      Server::Linux::Command.new
+      Server::Linux::Command.new(ask_pass_path)
     end
 
     def get_sanitizer_obj
-      Server::Linux::Sanitizer.new
+      Server::Linux::Sanitizer.new(command)
+    end
+
+    def print_result
+      puts result
     end
   end
 end
