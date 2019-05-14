@@ -27,14 +27,20 @@ module Stats
                 port: sanitizer.port(pid),
                 repository: {
                     root: root,
-                    files: {
-                        model: model.main_files(model.except_files),
-                        controller: controller.main_files(controller.except_files)
+                    directories: {
+                        model: process_class(model.main_files(model.except_files)),
+                        controller: process_class(controller.main_files(controller.except_files))
                     }
                 },
                 start_time: command.start_time(pid)
             }
           end
+        end
+
+        def process_class(models)
+          result = {}
+          models.each { |model| result[model] = {} }
+          result
         end
 
         def print_result
