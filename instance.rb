@@ -4,6 +4,8 @@ require_relative './base'
 require_relative './server/linux/instance'
 require_relative './server/linux/command'
 require_relative './server/linux/sanitizer'
+require_relative './project/parser/model'
+require_relative './project/parser/controller'
 
 module Stats
   class Instance < Base

@@ -29,6 +29,10 @@ module Stats
         def server_pids
           command.server_pids.split("\n")
         end
+
+        def port(pid)
+          command.port(pid).split("\n").collect{|x| x.split(':')}.collect(&:last).last
+        end
       end
     end
   end
