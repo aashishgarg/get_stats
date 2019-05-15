@@ -8,10 +8,9 @@ module Stats
           end
 
           def module?(line)
-            scan = line.scan(class_regex).flatten.last&.strip
+            scan = line.scan(module_regex).flatten.last&.strip
             if !comment?(line) && scan
-              classes << scan
-              hash[:class][scan] = { superclass: superclass(line), methods: {} }
+              modules << scan
             end
             scan
           end
@@ -20,7 +19,7 @@ module Stats
             scan = line.scan(class_regex).last&.strip
             if !comment?(line) && scan
               classes << scan
-              hash[:class] << { name: scan, superclass: superclass(line), methods: [] }
+              hash[:class] << { name: scan, superclass: superclass(line), module: (modules[-1] || ''), methods: [] }
             end
             scan
           end
@@ -68,7 +67,13 @@ module Stats
 
           def class_ended?(line)
             scan = line.scan(class_end_regex).last&.strip
-            classes.pop if methods.empty? if !comment?(line) && scan && methods.empty?
+            classes.pop if !comment?(line) && scan && methods.empty?
+            scan
+          end
+
+          def module_ended?(line)
+            scan = line.scan(module_end_regex).last&.strip
+            modules.pop if !comment?(line) && scan && methods.empty? && classes.empty?
             scan
           end
 
