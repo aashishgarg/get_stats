@@ -11,7 +11,7 @@ module Stats
             scan = line.scan(class_regex).flatten.last&.strip
             if !comment?(line) && scan
               classes << scan
-              hash['classes'][scan] = { 'superclass' => superclass(line), 'methods' => {} }
+              hash[:class][scan] = { superclass: superclass(line), methods: {} }
             end
             scan
           end
@@ -19,27 +19,27 @@ module Stats
           def class?(line)
             scan = line.scan(class_regex).last&.strip
             if !comment?(line) && scan
-              classes << {
-                  name: scan
-              }
+              classes << scan
+              hash[:class] << { name: scan, superclass: superclass(line), methods: [] }
             end
             # scan = line.scan(class_regex).last&.strip
             # if !comment?(line) && scan
             #   classes << scan
-            #   hash['classes'][scan] = { 'superclass' => superclass(line), 'methods' => {} }
+            #   hash[:class][scan] = { superclass: superclass(line), methods: {} }
             # end
-            # scan
+            scan
           end
 
           def method?(line)
             scan = line.scan(method_regex).last&.strip
             if !comment?(line) && scan
-
+              methods << scan
+              hash[:class][-1][:methods] << { name: scan, blocks: [] }
             end
             # scan = line.scan(method_regex).last&.strip
             # if !comment?(line) && scan
             #   methods << scan
-            #   hash['classes'][classes.last]['methods'][scan] = { 'blocks' => [] }
+            #   hash[:class][classes.last][:methods][scan] = { blocks: [] }
             # end
             # scan
           end
@@ -48,9 +48,15 @@ module Stats
             scan = line.scan(block_regex).last&.strip
             if !comment?(line) && scan
               blocks << scan
-              hash['classes'][classes.last]['methods'][methods.last]['blocks'] << scan
+              hash[:class][-1][:methods][-1][:blocks] << scan
+              # hash[:class][classes.last][:methods][methods.last][:blocks] << scan
             end
-            scan
+            # scan = line.scan(block_regex).last&.strip
+            # if !comment?(line) && scan
+            #   blocks << scan
+            #   hash[:class][classes.last][:methods][methods.last][:blocks] << scan
+            # end
+            # scan
           end
 
           def block_ended?(line)

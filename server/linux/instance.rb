@@ -30,8 +30,8 @@ module Stats
                 repository: {
                     root: root,
                     directories: {
-                        model: process_models(model.files),
-                        controller: process_controllers(controller.files)
+                        models: process_models(model.files),
+                        controllers: process_controllers(controller.files)
                     }
                 },
                 start_time: command.start_time(pid)
@@ -40,22 +40,27 @@ module Stats
         end
 
         def process_models(models)
-          result = {}
+          result = []
           models.each do |model|
             hash = Stats::Project::Parser::Code::Model.new(model).process
-            result[model] = {
-                name: file_name(model),
-                classes: hash['classes']
+            result << {
+                path: model,
+                file_name: file_name(model),
+                class: hash[:class]
             }
           end
           result
         end
 
         def process_controllers(controllers)
-          result = {}
+          result = []
           controllers.each do |controller|
             hash = Stats::Project::Parser::Code::Model.new(controller).process
-            result[controller] = { name: file_name(controller), classes: hash['classes'] }
+            result << {
+                path: controller,
+                file_name: file_name(controller),
+                class: hash[:class]
+            }
           end
           result
         end
