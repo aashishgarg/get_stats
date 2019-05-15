@@ -1,5 +1,7 @@
 require 'json'
 require_relative './base'
+require_relative '../../project/parser/code/model'
+require_relative '../../project/parser/code/controller'
 
 module Stats
   module Server
@@ -52,15 +54,14 @@ module Stats
         def process_controllers(controllers)
           result = {}
           controllers.each do |controller|
-            result[controller] = {
-                name: file_name(controller)
-            }
+            hash = Stats::Project::Parser::Code::Model.new(controller).process
+            result[controller] = { name: file_name(controller), classes: hash['classes'] }
           end
           result
         end
 
         def print_result
-          File.open(result_file, 'w') {|f| f.write(JSON.pretty_generate(result)) }
+          File.open(File.join(File.dirname(__FILE__), '../../', 'result.json'), 'w') {|f| f.write(JSON.pretty_generate(result)) }
         end
 
         def repositories

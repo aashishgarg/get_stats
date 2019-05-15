@@ -5,7 +5,7 @@ module Stats
   module Project
     module Parser
       module Code
-        class Model < Base
+        class Controller < Base
           include Stats::Project::Parser::Regex
           attr_accessor :current_file,:classes, :methods, :blocks, :hash
 
