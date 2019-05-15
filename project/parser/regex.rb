@@ -10,6 +10,10 @@ module Stats
           /^#/
         end
 
+        def module_regex
+          /\s*(?<=module)\s+\S+/
+        end
+
         def class_regex
           # /\s*(?<=class)\s+(\w+)\s*/
           /\s*(?<=class)\s+\S+/
@@ -23,6 +27,10 @@ module Stats
           /\S+\s+do\s+\|\S+$/
         end
 
+        def module_end_regex
+          /^\s*end\s*$/
+        end
+
         def class_end_regex
           /^\s*end\s*$/
         end
@@ -33,6 +41,10 @@ module Stats
 
         def block_end_regex
           /^\s*end\s*$/
+        end
+
+        def all_blocks
+          /if|begin|case|for|unless|while/
         end
       end
     end

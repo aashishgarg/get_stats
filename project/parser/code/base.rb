@@ -7,6 +7,15 @@ module Stats
             !line.scan(comment_regex).empty?
           end
 
+          def module?(line)
+            scan = line.scan(class_regex).flatten.last&.strip
+            if !comment?(line) && scan
+              classes << scan
+              hash['classes'][scan] = { 'superclass' => superclass(line), 'methods' => {} }
+            end
+            scan
+          end
+
           def class?(line)
             scan = line.scan(class_regex).flatten.last&.strip
             if !comment?(line) && scan
