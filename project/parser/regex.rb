@@ -20,7 +20,7 @@ module Stats
         end
 
         def method_regex
-          /(?<=def)\s*\S+/
+          /(?<=def)\s+\S+/
         end
 
         def block_regex
