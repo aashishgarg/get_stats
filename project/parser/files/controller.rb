@@ -11,7 +11,7 @@ module Stats
             @repository = repository
             @except_files = ['application_controller.rb']
             @root = File.join(repository, 'app', 'controllers')
-            @files = Dir["#{root}/**/*.rb"].collect { |file| File.basename(file) }
+            @files = Dir["#{root}/**/*.rb"]#.collect { |file| File.basename(file) }
           end
 
           def concerns

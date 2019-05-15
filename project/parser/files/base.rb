@@ -14,12 +14,12 @@ module Stats
           end
 
           def folders
-            Dir.glob(File.join(repository, "*", File::SEPARATOR)).collect {|s_d| File.basename(s_d) }
+            Dir.glob(File.join(repository, "*", File::SEPARATOR))#.collect {|s_d| File.basename(s_d) }
           end
 
-          def main_files(except_files)
-            files.reject { |file| except_files.include? File.basename(file) }
-          end
+          # def main_files(except_files)
+          #   files.reject { |file| except_files.include? File.basename(file) }
+          # end
         end
       end
     end

@@ -28,8 +28,8 @@ module Stats
                 repository: {
                     root: root,
                     directories: {
-                        model: process_class(model.main_files(model.except_files)),
-                        controller: process_class(controller.main_files(controller.except_files))
+                        model: process_models(model.files),
+                        controller: process_controllers(controller.files)
                     }
                 },
                 start_time: command.start_time(pid)
@@ -37,9 +37,25 @@ module Stats
           end
         end
 
-        def process_class(models)
+        def process_models(models)
           result = {}
-          models.each { |model| result[model] = {} }
+          models.each do |model|
+            hash = Stats::Project::Parser::Code::Model.new(model).process
+            result[model] = {
+                name: file_name(model),
+                classes: hash['classes']
+            }
+          end
+          result
+        end
+
+        def process_controllers(controllers)
+          result = {}
+          controllers.each do |controller|
+            result[controller] = {
+                name: file_name(controller)
+            }
+          end
           result
         end
 
