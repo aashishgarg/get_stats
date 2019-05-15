@@ -17,21 +17,31 @@ module Stats
           end
 
           def class?(line)
-            scan = line.scan(class_regex).flatten.last&.strip
+            scan = line.scan(class_regex).last&.strip
             if !comment?(line) && scan
-              classes << scan
-              hash['classes'][scan] = { 'superclass' => superclass(line), 'methods' => {} }
+              classes << {
+                  name: scan
+              }
             end
-            scan
+            # scan = line.scan(class_regex).last&.strip
+            # if !comment?(line) && scan
+            #   classes << scan
+            #   hash['classes'][scan] = { 'superclass' => superclass(line), 'methods' => {} }
+            # end
+            # scan
           end
 
           def method?(line)
             scan = line.scan(method_regex).last&.strip
             if !comment?(line) && scan
-              methods << scan
-              hash['classes'][classes.last]['methods'][scan] = { 'blocks' => [] }
+
             end
-            scan
+            # scan = line.scan(method_regex).last&.strip
+            # if !comment?(line) && scan
+            #   methods << scan
+            #   hash['classes'][classes.last]['methods'][scan] = { 'blocks' => [] }
+            # end
+            # scan
           end
 
           def block?(line)

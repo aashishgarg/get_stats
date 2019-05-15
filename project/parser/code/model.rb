@@ -7,9 +7,29 @@ module Stats
       module Code
         class Model < Base
           include Stats::Project::Parser::Regex
-          attr_accessor :current_file,:classes, :methods, :blocks, :hash
+          attr_accessor :current_file,:modules, :classes, :methods, :blocks, :hash
 
           def initialize(current_file)
+            result = {
+                classes: [
+                    {
+                        name: 'class1',
+                        module: '',
+                        methods: {
+                            public: [
+                                {
+                                    name: 'method1',
+                                    blocks: [
+                                        statements: []
+                                    ]
+                                }
+                            ],
+                            private: [],
+                            protected: []
+                        }
+                    }
+                ]
+            }
             @hash = { 'classes' => {} }
             @current_file = current_file
             @classes, @methods, @blocks = [], [], []
