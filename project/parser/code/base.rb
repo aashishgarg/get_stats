@@ -22,11 +22,6 @@ module Stats
               classes << scan
               hash[:class] << { name: scan, superclass: superclass(line), methods: [] }
             end
-            # scan = line.scan(class_regex).last&.strip
-            # if !comment?(line) && scan
-            #   classes << scan
-            #   hash[:class][scan] = { superclass: superclass(line), methods: {} }
-            # end
             scan
           end
 
@@ -49,12 +44,6 @@ module Stats
                   type: type[-1],
                   blocks: [] }
             end
-            # scan = line.scan(method_regex).last&.strip
-            # if !comment?(line) && scan
-            #   methods << scan
-            #   hash[:class][classes.last][:methods][scan] = { blocks: [] }
-            # end
-            # scan
           end
 
           def block?(line)
@@ -62,14 +51,7 @@ module Stats
             if !comment?(line) && scan
               blocks << scan
               hash[:class][-1][:methods][-1][:blocks] << scan
-              # hash[:class][classes.last][:methods][methods.last][:blocks] << scan
             end
-            # scan = line.scan(block_regex).last&.strip
-            # if !comment?(line) && scan
-            #   blocks << scan
-            #   hash[:class][classes.last][:methods][methods.last][:blocks] << scan
-            # end
-            # scan
           end
 
           def block_ended?(line)
