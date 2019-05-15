@@ -23,7 +23,6 @@ module Stats
             root = sanitizer.repository_path(pid)
             model = Stats::Project::Parser::Files::Model.new(root)
             controller = Stats::Project::Parser::Files::Controller.new(root)
-
             result[:processes] << {
                 pid: pid,
                 port: sanitizer.port(pid),

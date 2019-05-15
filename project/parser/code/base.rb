@@ -30,11 +30,24 @@ module Stats
             scan
           end
 
+          def method_type?(line)
+            scan = line.scan(public_regex).last&.strip
+            scan ||= line.scan(private_regex).last&.strip
+            scan ||= line.scan(protected_regex).last&.strip
+            if !comment?(line) && scan
+              type << scan
+            end
+            scan
+          end
+
           def method?(line)
             scan = line.scan(method_regex).last&.strip
             if !comment?(line) && scan
               methods << scan
-              hash[:class][-1][:methods] << { name: scan, blocks: [] }
+              hash[:class][-1][:methods] << {
+                  name: scan,
+                  type: type[-1],
+                  blocks: [] }
             end
             # scan = line.scan(method_regex).last&.strip
             # if !comment?(line) && scan

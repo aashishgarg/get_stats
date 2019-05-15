@@ -46,6 +46,18 @@ module Stats
         def all_blocks
           /if|begin|case|for|unless|while/
         end
+
+        def public_regex
+          /^\s*public\s*$/
+        end
+
+        def private_regex
+          /^\s*private\s*$/
+        end
+
+        def protected_regex
+          /^\s*protected\s*$/
+        end
       end
     end
   end
