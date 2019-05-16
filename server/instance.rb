@@ -1,11 +1,10 @@
 require 'json'
-require_relative '../server/base'
+require_relative './files'
 require_relative '../parser/code'
-require_relative '../parser/files/common'
 
 module Stats
   module Server
-    class Instance < Base
+    class Instance
       # --- Attribute Accessors --- #
       attr_accessor :pids, :sanitizer, :command, :result
 
@@ -16,12 +15,11 @@ module Stats
       def build_result
         pids.each do |pid|
           root = sanitizer.repository_path(pid)
-          common = Stats::Parser::Files::Common.new(root)
           result[:processes] << {
               pid: pid,
               port: sanitizer.port(pid),
               start_time: command.start_time(pid),
-              repository: {root: root, directories: process(common.files)}
+              repository: {root: root, directories: process(Stats::Server::Files.new(root).all)}
           }
         end
       end
@@ -33,7 +31,7 @@ module Stats
           result << {
               dir: File.dirname(file),
               path: file,
-              file_name: file_name(file),
+              file_name: File.basename(file, '.rb'),
               class: hash[:class],
               module: hash[:module]
           }

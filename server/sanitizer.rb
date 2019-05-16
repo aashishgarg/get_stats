@@ -1,8 +1,6 @@
-require_relative './base'
-
 module Stats
   module Server
-    class Sanitizer < Base
+    class Sanitizer
       attr_accessor :command
 
       def initialize(command)

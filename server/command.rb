@@ -1,8 +1,6 @@
-require_relative './base'
-
 module Stats
   module Server
-    class Command < Base
+    class Command
       attr_accessor :ask_pass_path
 
       def initialize(ask_pass_path)

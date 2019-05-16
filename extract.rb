@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 
-require_relative './base'
 require_relative './server/instance'
 require_relative './server/command'
 require_relative './server/sanitizer'
 
 module Stats
-  class Extract < Base
+  class Extract
     # --- Attribute Accessors
     attr_accessor :ask_pass_path, :server, :result, :pids, :command, :sanitizer, :result_path
 
