@@ -48,7 +48,9 @@ module Stats
 
           def block?(line)
             scan = line.scan(block_regex).last&.strip
+            scan ||= line.scan(all_blocks_regex).last&.strip
             if !comment?(line) && scan
+              puts line
               blocks << scan
               if classes.empty?
                 hash[:module][-1][:methods][-1][:blocks] << scan

@@ -17,13 +17,12 @@ module Stats
 
           def process
             File.readlines(current_file).each do |line|
+              next if module?(line)
               next if class?(line)
               next if method_type?(line)
               next if method?(line)
               next if block?(line)
-              next if block_ended?(line)
-              next if method_ended?(line)
-              next if class_ended?(line)
+              next if end?(line)
             end
             hash
           end

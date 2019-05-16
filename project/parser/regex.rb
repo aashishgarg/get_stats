@@ -31,8 +31,8 @@ module Stats
           /^\s*end\s*$/
         end
 
-        def all_blocks
-          /if|begin|case|for|unless|while/
+        def all_blocks_regex
+          /^\s*(?:if|begin|case|for|unless|while)[\s+]/
         end
 
         def public_regex
