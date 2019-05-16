@@ -1,16 +1,15 @@
 require_relative './base'
 
 module Stats
-  module Project
     module Parser
       module Files
-        class Model < Base
+        class Common < Base
           attr_accessor :repository, :root, :files, :except_files
 
           def initialize(repository)
             @repository = repository
-            @except_files = ['application_record.rb']
-            @root = File.join(repository, 'app', 'models')
+            @except_files = []
+            @root = repository
             @files = Dir["#{root}/**/*.rb"]#.collect { |file| File.basename(file) }
           end
 
@@ -21,4 +20,3 @@ module Stats
       end
     end
   end
-end

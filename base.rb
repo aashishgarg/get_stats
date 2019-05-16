@@ -1,4 +1,3 @@
 module Stats
-  class Base
-  end
+  class Base; end
 end
