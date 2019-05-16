@@ -2,6 +2,8 @@ require 'json'
 require_relative './base'
 require_relative '../../project/parser/code/model'
 require_relative '../../project/parser/code/controller'
+require_relative '../../project/parser/code/common'
+require_relative '../../project/parser/files/common'
 
 module Stats
   module Server
@@ -22,6 +24,7 @@ module Stats
             root = sanitizer.repository_path(pid)
             model = Stats::Project::Parser::Files::Model.new(root)
             controller = Stats::Project::Parser::Files::Controller.new(root)
+            common = Stats::Project::Parser::Files::Common.new(root)
             result[:processes] << {
                 pid: pid,
                 port: sanitizer.port(pid),
@@ -29,12 +32,27 @@ module Stats
                     root: root,
                     directories: {
                         models: process_models(model.files),
-                        controllers: process_controllers(controller.files)
+                        controllers: process_controllers(controller.files),
+                        common: process_common(common.files),
                     }
                 },
                 start_time: command.start_time(pid)
             }
           end
+        end
+
+        def process_common(files)
+          result = []
+          files.each do |file|
+            hash = Stats::Project::Parser::Code::Model.new(file).process
+            result << {
+                path: file,
+                file_name: file_name(file),
+                class: hash[:class],
+                module: hash[:module]
+            }
+          end
+          result
         end
 
         def process_models(models)

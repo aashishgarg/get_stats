@@ -10,7 +10,7 @@ module Stats
           attr_accessor :current_file,:classes, :methods, :blocks, :hash
 
           def initialize(current_file)
-            @hash = { class: {} }
+            @hash = { class: [], module: [], methods: [], blocks: [] }
             @current_file = current_file
             @classes, @methods, @blocks = [], [], []
           end

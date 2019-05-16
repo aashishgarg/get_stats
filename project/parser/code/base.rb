@@ -38,7 +38,11 @@ module Stats
             if !comment?(line) && scan
               methods << scan
               if classes.empty?
-                hash[:module][-1][:methods] << { name: scan, type: type[-1], blocks: [] }
+                if modules.empty?
+                  hash[:methods] << { name: scan, type: type[-1], blocks: [] }
+                else
+                  hash[:module][-1][:methods] << { name: scan, type: type[-1], blocks: [] }
+                end
               else
                 hash[:class][-1][:methods] << { name: scan, type: type[-1], blocks: [] }
               end
@@ -50,12 +54,27 @@ module Stats
             scan = line.scan(block_regex).last&.strip
             scan ||= line.scan(all_blocks_regex).last&.strip
             if !comment?(line) && scan
-              puts line
               blocks << scan
               if classes.empty?
-                hash[:module][-1][:methods][-1][:blocks] << scan
+                if modules.empty?
+                  if methods.empty?
+                    hash[:blocks] << scan
+                  else
+                    hash[:methods][-1][:blocks] << scan
+                  end
+                else
+                  if methods.empty?
+                    hash[:blocks] << scan
+                  else
+                    hash[:modules][-1][:methods][-1][:blocks] << scan
+                  end
+                end
               else
-                hash[:class][-1][:methods][-1][:blocks] << scan
+                if methods.empty?
+                  hash[:blocks] << scan
+                else
+                  hash[:class][-1][:methods][-1][:blocks] << scan
+                end
               end
             end
             scan

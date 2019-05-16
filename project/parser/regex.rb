@@ -3,11 +3,11 @@ module Stats
     module Parser
       module Regex
         def superclass_regex
-          /(?<=<)\s*(\w+)/
+          /(?<=<)\s*(\S+)/
         end
 
         def comment_regex
-          /^#/
+          /^#\S*/
         end
 
         def module_regex
@@ -24,7 +24,7 @@ module Stats
         end
 
         def block_regex
-          /\S+\s+do\s+\|\S+$/
+          /^.*?\s+do\s+\|\S+$/
         end
 
         def end_regex
