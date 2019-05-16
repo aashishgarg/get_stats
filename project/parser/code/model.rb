@@ -10,7 +10,7 @@ module Stats
           attr_accessor :current_file,:modules, :classes, :methods, :blocks, :hash, :type, :modules
 
           def initialize(current_file)
-            @hash = { class: [] }
+            @hash = { class: [], module: [] }
             @current_file = current_file
             @modules, @classes, @methods, @blocks, @type = [], [], [], [], ['public']
           end
@@ -22,10 +22,7 @@ module Stats
               next if method_type?(line)
               next if method?(line)
               next if block?(line)
-              next if block_ended?(line)
-              next if method_ended?(line)
-              next if class_ended?(line)
-              next if module_ended?(line)
+              next if end?(line)
             end
             hash
           end

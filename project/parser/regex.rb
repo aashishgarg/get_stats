@@ -27,19 +27,7 @@ module Stats
           /\S+\s+do\s+\|\S+$/
         end
 
-        def module_end_regex
-          /^\s*end\s*$/
-        end
-
-        def class_end_regex
-          /^\s*end\s*$/
-        end
-
-        def method_end_regex
-          /^\s*end\s*$/
-        end
-
-        def block_end_regex
+        def end_regex
           /^\s*end\s*$/
         end
 

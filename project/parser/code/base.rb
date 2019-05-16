@@ -11,6 +11,7 @@ module Stats
             scan = line.scan(module_regex).flatten.last&.strip
             if !comment?(line) && scan
               modules << scan
+              hash[:module] << { name: scan, methods: [] }
             end
             scan
           end
@@ -28,9 +29,7 @@ module Stats
             scan = line.scan(public_regex).last&.strip
             scan ||= line.scan(private_regex).last&.strip
             scan ||= line.scan(protected_regex).last&.strip
-            if !comment?(line) && scan
-              type << scan
-            end
+            type << scan if !comment?(line) && scan
             scan
           end
 
@@ -38,42 +37,36 @@ module Stats
             scan = line.scan(method_regex).last&.strip
             if !comment?(line) && scan
               methods << scan
-              hash[:class][-1][:methods] << {
-                  name: scan,
-                  type: type[-1],
-                  blocks: [] }
+              if classes.empty?
+                hash[:module][-1][:methods] << { name: scan, type: type[-1], blocks: [] }
+              else
+                hash[:class][-1][:methods] << { name: scan, type: type[-1], blocks: [] }
+              end
             end
+            scan
           end
 
           def block?(line)
             scan = line.scan(block_regex).last&.strip
             if !comment?(line) && scan
               blocks << scan
-              hash[:class][-1][:methods][-1][:blocks] << scan
+              if classes.empty?
+                hash[:module][-1][:methods][-1][:blocks] << scan
+              else
+                hash[:class][-1][:methods][-1][:blocks] << scan
+              end
             end
-          end
-
-          def block_ended?(line)
-            scan = line.scan(block_end_regex).last&.strip
-            blocks.pop if !comment?(line) && scan
             scan
           end
 
-          def method_ended?(line)
-            scan = line.scan(method_end_regex).last&.strip
-            methods.pop if !comment?(line) && scan && !methods.empty?
-            scan
-          end
-
-          def class_ended?(line)
-            scan = line.scan(class_end_regex).last&.strip
-            classes.pop if !comment?(line) && scan && methods.empty?
-            scan
-          end
-
-          def module_ended?(line)
-            scan = line.scan(module_end_regex).last&.strip
-            modules.pop if !comment?(line) && scan && methods.empty? && classes.empty?
+          def end?(line)
+            scan = line.scan(end_regex).last&.strip
+            if !comment?(line) && scan
+              return blocks.pop unless blocks.empty?
+              return methods.pop unless methods.empty?
+              return classes.pop unless classes.empty?
+              return modules.pop unless modules.empty?
+            end
             scan
           end
 

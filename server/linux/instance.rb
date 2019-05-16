@@ -8,14 +8,13 @@ module Stats
     module Linux
       class Instance < Base
         # --- Attribute Accessors --- #
-        attr_accessor :pids, :command, :sanitizer, :result_file
+        attr_accessor :pids, :command, :sanitizer
 
         def initialize(pids, sanitizer, command, result)
           @pids = pids
           @sanitizer = sanitizer
           @command = command
           @result = result
-          @result_file = '/home/ubuntu/result.json'
         end
 
         def build_result
@@ -45,7 +44,8 @@ module Stats
             result << {
                 path: model,
                 file_name: file_name(model),
-                class: hash[:class]
+                class: hash[:class],
+                module: hash[:module]
             }
           end
           result
