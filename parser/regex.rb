@@ -45,6 +45,11 @@ module Stats
       def protected_regex
         /^\s*protected\s*$/
       end
+
+      # === Rails MODEL specific Regex ================= #
+      def validation
+
+      end
     end
   end
 end

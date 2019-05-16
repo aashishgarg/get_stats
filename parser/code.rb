@@ -5,7 +5,7 @@ module Stats
   module Parser
     class Code < Base
       include Stats::Parser::Regex
-      attr_accessor :current_file, :modules, :classes, :methods, :blocks, :hash, :type, :modules
+      attr_accessor :hash, :current_file, :modules, :classes, :methods, :blocks, :type
 
       def initialize(current_file)
         @hash = {class: [], module: [], methods: [], blocks: []}
