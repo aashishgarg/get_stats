@@ -46,6 +46,10 @@ module Stats
         /^\s*protected\s*$/
       end
 
+      def constant_regex
+        /^\s*[A-Z].*\s*=\s*\S+/
+      end
+
       # === Rails MODEL specific Regex ================= #
       def validation_regex
         /\s*validates(?:\s+|_\w+\s+)(?:\S|\s)+/

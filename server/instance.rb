@@ -35,7 +35,8 @@ module Stats
               class: hash[:class],
               module: hash[:module],
               validations: hash[:validations],
-              associations: hash[:associations]
+              associations: hash[:associations],
+              constants: hash[:constants]
           }
         end
         result

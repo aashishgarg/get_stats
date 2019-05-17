@@ -99,6 +99,14 @@ module Stats
         end
         scan
       end
+
+      def constant?(line)
+        unless comment?(line)
+          scan = line.scan(constant_regex).flatten.last&.strip
+          hash[:constants] << scan if scan
+        end
+        scan
+      end
     end
   end
 end
