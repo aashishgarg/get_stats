@@ -47,8 +47,8 @@ module Stats
       end
 
       # === Rails MODEL specific Regex ================= #
-      def validation
-
+      def validation_regex
+        /\s*validates(?:\s+|_\w+\s+)(?:\S|\s)+/
       end
     end
   end

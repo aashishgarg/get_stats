@@ -33,7 +33,8 @@ module Stats
               path: file,
               file_name: File.basename(file, '.rb'),
               class: hash[:class],
-              module: hash[:module]
+              module: hash[:module],
+              validations: hash[:validations]
           }
         end
         result
@@ -44,7 +45,7 @@ module Stats
       end
 
       def repositories
-        result[:processes].collect {|process| process[:repository]}.uniq.reject {|x| x.empty?}
+        result[:processes].collect {|process| process[:repository]}.uniq.reject(&:empty?)
       end
     end
   end

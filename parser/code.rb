@@ -8,7 +8,7 @@ module Stats
       attr_accessor :hash, :current_file, :modules, :classes, :methods, :blocks, :type
 
       def initialize(current_file)
-        @hash = {class: [], module: [], methods: [], blocks: []}
+        @hash = {class: [], module: [], methods: [], blocks: [], validations: [] }
         @current_file = current_file
         @modules, @classes, @methods, @blocks, @type = [], [], [], [], ['public']
       end
@@ -17,12 +17,17 @@ module Stats
         File.readlines(current_file).each do |line|
           next if module?(line)
           next if class?(line)
+          next if model_class?(line) && validation?(line)
           next if method_type?(line)
           next if method?(line)
           next if block?(line)
           next if end?(line)
         end
         hash
+      end
+
+      def model_class?(line)
+        superclass(line).include?('ApplicationRecord') || !current_file.scan(/\/models\//).empty?
       end
     end
   end

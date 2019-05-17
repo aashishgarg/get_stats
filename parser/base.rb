@@ -15,12 +15,14 @@ module Stats
       end
 
       def class?(line)
-        scan = line.scan(class_regex).last&.strip
-        if !comment?(line) && scan
-          classes << scan
-          hash[:class] << {name: scan, superclass: superclass(line), module: (modules[-1] || ''), methods: []}
+        unless comment?(line)
+          scan = line.scan(class_regex).last&.strip
+          if scan
+            classes << scan
+            hash[:class] << {name: scan, superclass: superclass(line), module: (modules[-1] || ''), methods: []}
+          end
+          scan
         end
-        scan
       end
 
       def method_type?(line)
@@ -80,6 +82,14 @@ module Stats
       def superclass(line)
         scan = line.scan(superclass_regex).flatten.last&.strip
         scan || ''
+      end
+
+      def validation?(line)
+        unless comment?(line)
+          scan = line.scan(validation_regex).flatten.last&.strip
+          hash[:validations] << scan if scan
+        end
+        scan
       end
     end
   end
