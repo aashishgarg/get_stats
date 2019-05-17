@@ -50,6 +50,10 @@ module Stats
       def validation_regex
         /\s*validates(?:\s+|_\w+\s+)(?:\S|\s)+/
       end
+
+      def association_regex
+        /^\s*(?:has_many|has_one|belongs_to|has_and_belongs_to_many)(?:\s|\S)+/
+      end
     end
   end
 end

@@ -91,6 +91,14 @@ module Stats
         end
         scan
       end
+
+      def association?(line)
+        unless comment?(line)
+          scan = line.scan(association_regex).flatten.last&.strip
+          hash[:associations] << scan if scan
+        end
+        scan
+      end
     end
   end
 end

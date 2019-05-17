@@ -34,7 +34,8 @@ module Stats
               file_name: File.basename(file, '.rb'),
               class: hash[:class],
               module: hash[:module],
-              validations: hash[:validations]
+              validations: hash[:validations],
+              associations: hash[:associations]
           }
         end
         result

@@ -8,7 +8,7 @@ module Stats
       attr_accessor :hash, :current_file, :modules, :classes, :methods, :blocks, :type
 
       def initialize(current_file)
-        @hash = {class: [], module: [], methods: [], blocks: [], validations: [] }
+        @hash = {class: [], module: [], methods: [], blocks: [], validations: [], associations: [] }
         @current_file = current_file
         @modules, @classes, @methods, @blocks, @type = [], [], [], [], ['public']
       end
@@ -18,6 +18,7 @@ module Stats
           next if module?(line)
           next if class?(line)
           next if model_class?(line) && validation?(line)
+          next if model_class?(line) && association?(line)
           next if method_type?(line)
           next if method?(line)
           next if block?(line)
