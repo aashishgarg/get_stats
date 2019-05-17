@@ -15,7 +15,7 @@ module Stats
       @command = get_command_obj
       @sanitizer = get_sanitizer_obj
       @pids = [sanitizer.server_pids, sanitizer.redis_pids].flatten.uniq
-      @result = { server_release: sanitizer.perform(command.os_release), processes: [] }
+      @result = { server_release: sanitizer.perform(command.os_release), processes: [], errors: [] }
       @server = get_instance(type)
       start if server
     end
@@ -34,8 +34,12 @@ module Stats
     end
 
     def start
-      server.build_result
-      server.print_result(result_path)
+      begin
+        server.build_result
+        server.print_result(result_path)
+      rescue StandardError => e
+        result[:errors] << { message: e.message, trace: e.trace }
+      end
     end
   end
 end
