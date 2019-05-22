@@ -32,11 +32,12 @@ module Stats
               dir: File.dirname(file),
               path: file,
               file_name: File.basename(file, '.rb'),
-              class: hash[:class],
-              module: hash[:module],
-              validations: hash[:validations],
-              associations: hash[:associations],
-              constants: hash[:constants]
+              child: hash
+              # class: hash[:class],
+              # module: hash[:module],
+              # validations: hash[:validations],
+              # associations: hash[:associations],
+              # constants: hash[:constants]
           }
         end
         result
