@@ -49,7 +49,20 @@ module Stats
       def method?
         scan = @line.scan(method_regex).last&.strip
         return unless scan
-        set_children(@collection, { type: 'method', name: scan,children: [], body: [] }, @level)
+
+        item = {}
+        item[:type] = 'method'
+        if scan.include?('self.')
+          item[:name] = scan.split('self.').last
+          item[:level] = 'class'
+        else
+          item[:name] = scan
+          item[:level] = 'instance'
+        end
+        item[:children] = []
+        item[:body] = []
+
+        set_children(@collection, item, @level)
         @level += 1
       end
 

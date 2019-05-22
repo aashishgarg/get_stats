@@ -70,6 +70,13 @@ module Stats
       def association_type_regex
         /^\s*(?:has_many_attached|has_many|has_one_attached|has_one|belongs_to|has_and_belongs_to_many|accepts_nested_attributes_for)\s*/
       end
+
+      # Ex - asso.method.next_method
+      #      asso.method[]
+      #      asso.method
+      def method_usage_regex(method)
+        /\.#{method}(?:\s*|\[|\.)/
+      end
     end
   end
 end
