@@ -4,14 +4,15 @@ module Stats
   module Parser
     class Code
       include Stats::Parser::Regex
-      attr_accessor :current_file, :type, :level, :collection, :line
+      attr_accessor :current_file, :type, :level, :collection, :line, :hash
 
       def initialize(current_file)
         @current_file = current_file
-        @type = ['public']
+        @scope = ['public']
         @level = 1
         @line = nil
         @collection = [{children: []}]
+        @hash = { associations: [], validations: [] }
       end
 
       # Ruby File Specific methods
@@ -30,12 +31,17 @@ module Stats
       def class?
         scan = @line.scan(class_regex).last&.strip
         return unless scan
-        hash = { type: 'class', name: scan,
+        item = { type: 'class', name: scan,
                  superclass: superclass,
-                 file_type: model? || controller? || 'File',
-                 children: []
+                 scope: @scope.last,
+                 file_type: file_type
         }
-        set_children(@collection, hash, @level)
+        if file_type == 'model'
+          item[:associations] = hash[:associations]
+          item[:validations] = hash[:validations]
+        end
+        item[:children] = []
+        set_children(@collection, item, @level)
         @level += 1
       end
 
@@ -48,7 +54,7 @@ module Stats
 
       def method_type?
         scan = @line.scan(method_scope_regex).last&.strip
-        type << scan if scan
+        @scope << scan if scan
       end
 
       def block?
@@ -71,6 +77,10 @@ module Stats
         scan || ''
       end
 
+      def file_type
+        model? || controller? || 'normal'
+      end
+
       # Controller Specific methods
       #
       def controller?
@@ -86,11 +96,13 @@ module Stats
       def validation?
         scan = @line.scan(validation_regex).flatten.last&.strip
         hash[:validations] << scan if scan
+        scan
       end
 
       def association?
         scan = line.scan(association_regex).flatten.last&.strip
         hash[:associations] << scan if scan
+        scan
       end
 
       def constant?
@@ -105,12 +117,16 @@ module Stats
           unless comment?
             next if module?
             next if class?
+            next if association?
+            next if validation?
+            next if class?
+            next if method_type?
             next if method?
             next if block?
             next if end?
           end
         end
-        p @collection[0][:children]
+        @collection[0][:children]
       end
 
       private
