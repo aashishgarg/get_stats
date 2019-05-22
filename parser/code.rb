@@ -4,13 +4,14 @@ module Stats
   module Parser
     class Code
       include Stats::Parser::Regex
-      attr_accessor :current_file, :type, :level, :collection, :line, :hash
+      attr_accessor :current_file, :scope, :level, :collection, :line, :hash, :body
 
       def initialize(current_file)
         @current_file = current_file
         @scope = ['public']
         @level = 1
         @line = nil
+        @body = []
         @collection = [{children: []}]
         @hash = { associations: [], validations: [] }
       end
@@ -48,7 +49,7 @@ module Stats
       def method?
         scan = @line.scan(method_regex).last&.strip
         return unless scan
-        set_children(@collection, { type: 'method', name: scan,children: [] }, @level)
+        set_children(@collection, { type: 'method', name: scan,children: [], body: [] }, @level)
         @level += 1
       end
 
@@ -61,7 +62,7 @@ module Stats
         scan = @line.scan(block_regex).last&.strip
         scan ||= @line.scan(all_blocks_regex).last&.strip
         if scan
-          set_children(@collection, { type: 'block', name: scan, children: [] }, @level)
+          set_children(@collection, { type: 'block', name: scan, children: [], body: [] }, @level)
           @level += 1
         end
         scan
@@ -100,8 +101,12 @@ module Stats
       end
 
       def association?
-        scan = line.scan(association_regex).flatten.last&.strip
-        hash[:associations] << scan if scan
+        scan = line.scan(association_type_regex).flatten.last&.strip
+        hash[:associations] << {
+            type: scan,
+            name: line.scan(association_name_regex).last&.strip,
+            body: line
+        } if scan
         scan
       end
 
@@ -112,8 +117,8 @@ module Stats
 
       # Parses the file for different identifiers
       def parse
-        File.readlines(current_file).each do |line|
-          @line = line
+        File.readlines(current_file).each do |_line|
+          @body << @line = _line
           unless comment?
             next if module?
             next if class?
@@ -126,7 +131,7 @@ module Stats
             next if end?
           end
         end
-        @collection[0][:children]
+        { body: @body, hierarchy: @collection[0][:children] }
       end
 
       private

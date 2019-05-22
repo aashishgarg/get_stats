@@ -32,7 +32,8 @@ module Stats
               dir: File.dirname(file),
               path: file,
               file_name: File.basename(file, '.rb'),
-              children: hash
+              hierarchy: hash[:hierarchy],
+              body: hash[:body]
           }
         end
         result

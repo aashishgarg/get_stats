@@ -6,7 +6,7 @@ module Stats
       end
 
       def comment_regex
-        /^#\S*/
+        /^\s*#(\s|\S)*/
       end
 
       def module_regex
@@ -60,7 +60,15 @@ module Stats
       end
 
       def association_regex
-        /^\s*(?:has_many|has_one|belongs_to|has_and_belongs_to_many)(?:\s|\S)+/
+        /^\s*(?:has_many_attached|has_many|has_one_attached|has_one|belongs_to|has_and_belongs_to_many|accepts_nested_attributes_for)(?:\s|\S)+/
+      end
+
+      def association_name_regex
+        /(?<=has_many_attached|has_many|has_one_attached|has_one|belongs_to|has_and_belongs_to_many|accepts_nested_attributes_for)\s+\S+/
+      end
+
+      def association_type_regex
+        /^\s*(?:has_many_attached|has_many|has_one_attached|has_one|belongs_to|has_and_belongs_to_many|accepts_nested_attributes_for)\s*/
       end
     end
   end
