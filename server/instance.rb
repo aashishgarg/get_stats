@@ -27,17 +27,12 @@ module Stats
       def process(files)
         result = []
         files.each do |file|
-          hash = Stats::Parser::Code.new(file).process
+          hash = Stats::Parser::Code.new(file).parse
           result << {
               dir: File.dirname(file),
               path: file,
               file_name: File.basename(file, '.rb'),
-              child: hash
-              # class: hash[:class],
-              # module: hash[:module],
-              # validations: hash[:validations],
-              # associations: hash[:associations],
-              # constants: hash[:constants]
+              children: hash
           }
         end
         result

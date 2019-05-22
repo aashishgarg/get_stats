@@ -1,121 +1,127 @@
-require_relative './base'
 require_relative './regex'
-
-Hash.class_eval do
-  def dig_fetch(*keys, last, &block)
-    block ||= ->(*) { raise KeyError, "key not found: #{(keys << last).inspect}" }
-    before = (keys.any? ? dig(*keys) || {} : self)
-    before.fetch(last, &block)
-  end
-
-  def dig_set(keys, value, counter)
-    raise ArgumentError, "No key given" if keys.empty?
-    keys = keys.dup
-    last = keys.pop
-    failed = ->(*) { raise KeyError, "key not found: #{(keys << last).inspect}" }
-    nested = keys.inject(self) { |h, k| h.fetch(k, &failed) }
-    nested[last] << value
-  end
-end
 
 module Stats
   module Parser
-    class Code < Base
+    class Code
       include Stats::Parser::Regex
-      attr_accessor :hash, :current_file, :modules, :classes, :methods, :blocks, :type, :stack, :level, :collection
+      attr_accessor :current_file, :type, :level, :collection, :line
 
       def initialize(current_file)
-        @hash = {}
         @current_file = current_file
-        @modules, @classes, @methods, @blocks, @type = [], [], [], [], ['public']
+        @type = ['public']
         @level = 1
-        @stack = []
+        @line = nil
         @collection = [{children: []}]
       end
-      # array = [{children: []}]
-      # array = [{children: [
-      #                      {type: 'class',name: 'A1', children: [
-      #                                                            {type: 'method', name: 'aa', children: []}
-      #                                                            {type: 'method', name: 'bb', children: []}
-      #                                                           ]}
-      #                     ]}]
-      def set_children(array, value, counter)
-        array = array.dup
-        (1..counter).each do |no|
-          array = array[-1][:children]
-        end
-        array << value
+
+      # Ruby File Specific methods
+      #
+      def comment?
+        !@line.scan(comment_regex).empty?
       end
 
-      def module?(line)
-        scan = line.scan(module_regex).flatten.last&.strip
-        if !comment?(line) && scan
-          set_children(@collection, { type: 'module', name: scan, children: [] }, @level)
-          @level += 1
-        end
-        scan
+      def module?
+        scan = @line.scan(module_regex).last&.strip
+        return unless scan
+        set_children(@collection, { type: 'module', name: scan, children: [] }, @level)
+        @level += 1
       end
 
-      def class?(line)
-        scan = line.scan(class_regex).flatten.last&.strip
-        if !comment?(line) && scan
-          set_children(@collection, { type: 'class', name: scan, children: [] }, @level)
-          @level += 1
-        end
-        scan
+      def class?
+        scan = @line.scan(class_regex).last&.strip
+        return unless scan
+        hash = { type: 'class', name: scan,
+                 superclass: superclass,
+                 file_type: model? || controller? || 'File',
+                 children: []
+        }
+        set_children(@collection, hash, @level)
+        @level += 1
       end
 
-      def method_type?(line)
-        scan = line.scan(public_regex).last&.strip
-        scan ||= line.scan(private_regex).last&.strip
-        scan ||= line.scan(protected_regex).last&.strip
-        type << scan if !comment?(line) && scan
-        scan
+      def method?
+        scan = @line.scan(method_regex).last&.strip
+        return unless scan
+        set_children(@collection, { type: 'method', name: scan,children: [] }, @level)
+        @level += 1
       end
 
-      def method?(line)
-        scan = line.scan(method_regex).flatten.last&.strip
-        if !comment?(line) && scan
-          set_children(@collection, { type: 'method', name: scan, children: [] }, @level)
-          @level += 1
-        end
-        scan
+      def method_type?
+        scan = @line.scan(method_scope_regex).last&.strip
+        type << scan if scan
       end
 
-      def block?(line)
-        scan = line.scan(block_regex).last&.strip
-        scan ||= line.scan(all_blocks_regex).last&.strip
-        if !comment?(line) && scan
+      def block?
+        scan = @line.scan(block_regex).last&.strip
+        scan ||= @line.scan(all_blocks_regex).last&.strip
+        if scan
           set_children(@collection, { type: 'block', name: scan, children: [] }, @level)
           @level += 1
         end
         scan
       end
 
-      def end?(line)
-        scan = line.scan(end_regex).last&.strip
-        if !comment?(line) && scan
-          # puts '-------------------------'
-          # puts @level
-          @level -= 1
-          # puts @level
-        end
-        scan
+      def end?
+        scan = @line.scan(end_regex).last&.strip
+        @level -= 1 if scan
       end
 
-      def process
+      def superclass
+        scan = @line.scan(superclass_regex).flatten.last&.strip
+        scan || ''
+      end
+
+      # Controller Specific methods
+      #
+      def controller?
+        'controller' if superclass.include?('ApplicationController') || !current_file.scan(/\/controllers\//).empty?
+      end
+
+      # Model Specific methods
+      #
+      def model?
+        'model' if superclass.include?('ApplicationRecord') || !current_file.scan(/\/models\//).empty?
+      end
+
+      def validation?
+        scan = @line.scan(validation_regex).flatten.last&.strip
+        hash[:validations] << scan if scan
+      end
+
+      def association?
+        scan = line.scan(association_regex).flatten.last&.strip
+        hash[:associations] << scan if scan
+      end
+
+      def constant?
+        scan = line.scan(constant_regex).flatten.last&.strip
+        hash[:constants] << scan if scan
+      end
+
+      # Parses the file for different identifiers
+      def parse
         File.readlines(current_file).each do |line|
-          next if module?(line)
-          next if class?(line)
-          next if method?(line)
-          next if block?(line)
-          next if end?(line)
+          @line = line
+          unless comment?
+            next if module?
+            next if class?
+            next if method?
+            next if block?
+            next if end?
+          end
         end
-        p @collection
+        p @collection[0][:children]
       end
 
-      def model_class?(line)
-        superclass(line).include?('ApplicationRecord') || !current_file.scan(/\/models\//).empty?
+      private
+
+
+      def set_children(array, value, counter)
+        array = array.dup
+        (1..counter).each do |no|
+          array = array[-1][:children]
+        end
+        array << value
       end
     end
   end

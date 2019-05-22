@@ -26,12 +26,16 @@ module Stats
         /^.*?\s+do\s+\|\S+$/
       end
 
+      def all_blocks_regex
+        /^\s*(?:if|begin|case|for|unless|while)[\s+]/
+      end
+
       def end_regex
         /^\s*end\s*$/
       end
 
-      def all_blocks_regex
-        /^\s*(?:if|begin|case|for|unless|while)[\s+]/
+      def method_scope_regex
+        /^\s*public|private|protected\s*$/
       end
 
       def public_regex
