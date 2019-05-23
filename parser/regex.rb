@@ -22,6 +22,18 @@ module Stats
         /(?<=def)\s+(?:\S|\s)+/
       end
 
+      def method_name_regex
+        /^\w+(?=\()*/
+      end
+
+      def method_args_regex
+        /(?<=\w)[\(]\w+\S+[\)]/
+      end
+
+      def method_scope_regex
+        /^\s*public|private|protected\s*$/
+      end
+
       def block_regex
         /^.*?\s+do\s+\|\S+$/
       end
@@ -32,10 +44,6 @@ module Stats
 
       def end_regex
         /^\s*end\s*$/
-      end
-
-      def method_scope_regex
-        /^\s*public|private|protected\s*$/
       end
 
       def public_regex

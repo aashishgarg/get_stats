@@ -19,7 +19,10 @@ module Stats
               pid: pid,
               port: sanitizer.port(pid),
               start_time: command.start_time(pid),
-              repository: {root: root, directories: process(Stats::Server::Files.new(root).all)}
+              repository: {
+                  root: root,
+                  files: process(Stats::Server::Files.new(root).all)
+              }
           }
         end
       end

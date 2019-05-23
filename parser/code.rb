@@ -1,23 +1,27 @@
+require 'byebug'
 require_relative './regex'
 
 module Stats
   module Parser
     class Code
       include Stats::Parser::Regex
-      attr_accessor :current_file, :scope, :level, :collection, :line, :hash, :body
+      attr_accessor :current_file, :scope, :level, :collection, :line, :hash, :body, :stack,
+                    :class_started, :module_started
 
       def initialize(current_file)
-        @current_file = current_file
-        @scope = ['public']
-        @level = 1
-        @line = nil
-        @body = []
-        @collection = [{children: []}]
-        @hash = { associations: [], validations: [] }
+        @current_file = current_file                  # File path under parsing
+        @line = nil                                   # Current line under parsing
+        @collection = [{children: []}]                # Final result collection
+        @stack = []                                   # For tracking all the parents of a node
+        @scope = ['public']                           # Scope of method(public/private/protected)
+        @level = 1                                    # Nesting level of a node
+        @hash = {associations: [], validations: []}   # Different Collections
+        @body = []                                    #
       end
 
+      # -------------------------------- #
       # Ruby File Specific methods
-      #
+      # -------------------------------- #
       def comment?
         !@line.scan(comment_regex).empty?
       end
@@ -25,24 +29,32 @@ module Stats
       def module?
         scan = @line.scan(module_regex).last&.strip
         return unless scan
-        set_children(@collection, { type: 'module', name: scan, children: [] }, @level)
+
+        item = {type: 'module', name: scan, node_level: @level, children: [], parent: @stack.dup, body: [line]}
+        set_children(@collection, item, @level)
+        @stack << {type: 'module', name: scan}
         @level += 1
       end
 
       def class?
         scan = @line.scan(class_regex).last&.strip
         return unless scan
-        item = { type: 'class', name: scan,
-                 superclass: superclass,
-                 scope: @scope.last,
-                 file_type: file_type
+        item = {type: 'class', name: scan,
+                superclass: superclass,
+                scope: @scope.last,
+                file_type: file_type,
+                node_level: @level
         }
         if file_type == 'model'
           item[:associations] = hash[:associations]
           item[:validations] = hash[:validations]
         end
         item[:children] = []
+        # puts stack.to_s
+        item[:parent] = @stack.dup
+        item[:body] = [line]
         set_children(@collection, item, @level)
+        @stack << {type: 'class', name: scan}
         @level += 1
       end
 
@@ -53,16 +65,23 @@ module Stats
         item = {}
         item[:type] = 'method'
         if scan.include?('self.')
-          item[:name] = scan.split('self.').last
+          only_name = scan.delete(' ').split('self.').last.scan(method_name_regex).last&.strip
+          args = scan.delete(' ').split('self.').last.scan(method_args_regex).last.strip.delete('()').split(',') rescue []
           item[:level] = 'class'
         else
-          item[:name] = scan
+          only_name = scan.delete(' ').scan(method_name_regex).last&.strip
+          args = scan.delete(' ').scan(method_args_regex).last.strip.delete('()').split(',') rescue []
           item[:level] = 'instance'
         end
+        item[:name] = only_name
+        item[:arguments] = args
+        item[:node_level] = @level
         item[:children] = []
-        item[:body] = []
+        item[:parent] = @stack.dup
+        item[:body] = [line]
 
         set_children(@collection, item, @level)
+        @stack << {type: 'method', name: scan}
         @level += 1
       end
 
@@ -75,7 +94,8 @@ module Stats
         scan = @line.scan(block_regex).last&.strip
         scan ||= @line.scan(all_blocks_regex).last&.strip
         if scan
-          set_children(@collection, { type: 'block', name: scan, children: [], body: [] }, @level)
+          set_children(@collection, {type: 'block', name: scan, node_level: @level, children: [], parent: @stack.dup, body: [line]}, @level)
+          @stack << {type: 'block', name: scan}
           @level += 1
         end
         scan
@@ -83,7 +103,10 @@ module Stats
 
       def end?
         scan = @line.scan(end_regex).last&.strip
-        @level -= 1 if scan
+        if scan
+          @level -= 1
+          stack.pop
+        end
       end
 
       def superclass
@@ -95,8 +118,9 @@ module Stats
         model? || controller? || 'normal'
       end
 
+      # -------------------------------- #
       # Controller Specific methods
-      #
+      # -------------------------------- #
       def controller?
         'controller' if superclass.include?('ApplicationController') || !current_file.scan(/\/controllers\//).empty?
       end
@@ -128,10 +152,13 @@ module Stats
         hash[:constants] << scan if scan
       end
 
+      # ----------------------------------------- #
       # Parses the file for different identifiers
+      # ----------------------------------------- #
       def parse
         File.readlines(current_file).each do |_line|
-          @body << @line = _line
+          @body << @line = _line.chomp
+          set_body(collection[-1][:children], _line)
           unless comment?
             next if module?
             next if class?
@@ -143,19 +170,25 @@ module Stats
             next if block?
             next if end?
           end
+
         end
-        { body: @body, hierarchy: @collection[0][:children] }
+        {body: @body, hierarchy: @collection[0][:children]}
       end
 
       private
 
-
       def set_children(array, value, counter)
         array = array.dup
-        (1..counter).each do |no|
+        counter.times {array = array[-1][:children]}
+        array << value
+      end
+
+      def set_body(array, line)
+        array = array.dup
+        (level-1).times do
+          array[-1][:body] << line.chomp
           array = array[-1][:children]
         end
-        array << value
       end
     end
   end
