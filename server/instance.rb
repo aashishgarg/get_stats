@@ -29,6 +29,7 @@ module Stats
 
       def process(files)
         result = []
+        # files = files.select {|x| x.include?('/lab.rb') || x.include?('/lab_test.rb') }
         files.each do |file|
           hash = Stats::Parser::Code.new(file).parse
           result << {

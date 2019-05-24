@@ -1,15 +1,15 @@
+require 'byebug'
 require 'json'
+require_relative 'finder'
 
 module Stats
   module Parser
     class Json
       # --- Attribute Accessors --- #
-      attr_accessor :json, :classes, :modules, :temp_collection
+      attr_accessor :json, :temp_collection
 
       def initialize(source)
         @json = get_json(source)
-        @classes = []
-        @modules = []
         set_defaults
       end
 
@@ -47,7 +47,7 @@ module Stats
             collection << { directory: dir[:root], classes: get_item(file[:hierarchy], 'class') }
           end
         end
-        collection
+        collection.uniq
       end
 
       def modules
@@ -58,7 +58,7 @@ module Stats
             collection << { directory: dir[:root], modules: get_item(file[:hierarchy], 'module') }
           end
         end
-        collection
+        collection.uniq
       end
 
       def methods
@@ -69,7 +69,7 @@ module Stats
             collection << { directory: dir[:root], methods: get_item(file[:hierarchy], 'method') }
           end
         end
-        collection
+        collection.uniq
       end
 
       def blocks
@@ -80,23 +80,31 @@ module Stats
             collection << { directory: dir[:root], blocks: get_item(file[:hierarchy], 'block') }
           end
         end
-        collection
+        collection.uniq
       end
 
-      def model_classes
-
+      def method_usages
+        collection = []
+        classes.each do |item|
+          item[:classes].each do |_parent|
+            (item[:classes] - [_parent]).each do |_child|
+              _p_methods = _parent[:children].select{ |child| child[:type] == 'method' }
+              _p_methods.each do |_method|
+                collection << Stats::Parser::Finder.new.method(_method, _child)
+              end
+            end
+          end
+        end
+        collection.reject(&:empty?)
       end
 
-      def controller_classes
 
-      end
 
       def get_item(array, type)
         array = array.dup
         array.each do |hash|
-          if hash[:type] == type
-            @temp_collection << hash
-          end
+          @temp_collection << hash if hash[:type] == type
+          return temp_collection if hash[:children]
           get_item(hash[:children], type)
         end
         @temp_collection

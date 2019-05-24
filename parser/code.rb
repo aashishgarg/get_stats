@@ -16,7 +16,7 @@ module Stats
         @scope = ['public']                           # Scope of method(public/private/protected)
         @level = 1                                    # Nesting level of a node
         @hash = {associations: [], validations: []}   # Different Collections
-        @body = []                                    #
+        @body = []                                    # body of whole file
       end
 
       # -------------------------------- #
@@ -30,16 +30,18 @@ module Stats
         scan = @line.scan(module_regex).last&.strip
         return unless scan
 
-        item = {type: 'module', name: scan, node_level: @level, children: [], parent: @stack.dup, body: [line]}
+        item = {type: 'module', name: scan, id: id, node_level: @level, children: [], parent: @stack.dup, body: [line]}
         set_children(@collection, item, @level)
-        @stack << {type: 'module', name: scan}
+        @stack << {type: 'module', name: item[:name], id: item[:id]}
         @level += 1
       end
 
       def class?
         scan = @line.scan(class_regex).last&.strip
         return unless scan
-        item = {type: 'class', name: scan,
+        item = {type: 'class',
+                name: scan,
+                id: id,
                 superclass: superclass,
                 scope: @scope.last,
                 file_type: file_type,
@@ -54,7 +56,7 @@ module Stats
         item[:parent] = @stack.dup
         item[:body] = [line]
         set_children(@collection, item, @level)
-        @stack << {type: 'class', name: scan}
+        @stack << {type: 'class', name: scan, id: item[:id]}
         @level += 1
       end
 
@@ -74,6 +76,7 @@ module Stats
           item[:level] = 'instance'
         end
         item[:name] = only_name
+        item[:id] = id
         item[:arguments] = args
         item[:node_level] = @level
         item[:children] = []
@@ -81,7 +84,7 @@ module Stats
         item[:body] = [line]
 
         set_children(@collection, item, @level)
-        @stack << {type: 'method', name: scan}
+        @stack << {type: 'method', name: scan, id: item[:id]}
         @level += 1
       end
 
@@ -94,8 +97,9 @@ module Stats
         scan = @line.scan(block_regex).last&.strip
         scan ||= @line.scan(all_blocks_regex).last&.strip
         if scan
-          set_children(@collection, {type: 'block', name: scan, node_level: @level, children: [], parent: @stack.dup, body: [line]}, @level)
-          @stack << {type: 'block', name: scan}
+          item = {type: 'block', name: scan,id: id, node_level: @level, children: [], parent: @stack.dup, body: [line]}
+          set_children(@collection, item, @level)
+          @stack << {type: 'block', name: scan, id: item[:id]}
           @level += 1
         end
         scan
@@ -189,6 +193,10 @@ module Stats
           array[-1][:body] << line.chomp
           array = array[-1][:children]
         end
+      end
+
+      def id
+        rand(100000000000)
       end
     end
   end
