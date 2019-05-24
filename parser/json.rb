@@ -1,50 +1,113 @@
+require 'json'
+
 module Stats
   module Parser
-    class JSON
+    class Json
       # --- Attribute Accessors --- #
-      attr_accessor :classes, :modules
+      attr_accessor :json, :classes, :modules
 
-      def initialize
-        @collection, @classes, @modules = [], [], []
+      def initialize(source)
+        @json = get_json(source)
+        @temp_collection = []
+        @classes = []
+        @modules = []
       end
 
-      def iterate(collection)
-        collection.each do |item|
-          _methods = item[:children].select {|child| child[:type] == 'method'}
-          if item[:type] == 'class'
-            @classes << {name: item[:name], methods: _methods, body: item[:body]}
-            iterate(item[:children])
+      def get_json(source)
+        if source.is_a? Hash
+          source
+        elsif source.is_a?(String) && File.exist?(source)
+          JSON.parse(File.read(source), { symbolize_names: true })
+        else
+          {}
+        end
+      end
 
-          elsif item[:type] == 'modules'
-            @classes << {name: item[:name], methods: _methods, body: item[:body]}
-            iterate(item[:children])
+      def processes
+        json[:processes]
+      end
+
+      def repositories
+        processes.collect{ |process| process[:repository][:root] }
+      end
+
+      def directories
+        processes.collect do |process|
+          {
+              root: process[:repository][:root],
+              files: process[:repository][:files],
+          }
+        end
+      end
+
+      def classes
+        collection = []
+        directories.each do |dir|
+          dir[:files].each do |file|
+            collection << {
+                directory: dir[:root],
+                classes: get_item(file[:hierarchy], 'class')
+            }
           end
         end
-        { classes: @classes, modules: @modules }
+        collection
       end
 
-      def class_item(name)
-        @collection[0][:children].select {|item| item[:type] == 'class' && item[:name] == name }.last
-      end
-
-      def methods_list(class_name)
-        methods = class_item(class_name)[:children].select {|y| y[:type] == 'method'}
-        methods.collect do |item2|
-          {name: item2[:name], level: item2[:level], args: item2[:arguments]}
-        end unless methods.empty?
-        methods
-      end
-
-      def class_methods_hash(collection)
-        models = collection[0][:children].select {|item| item[:file_type] == 'model'}
-        models.map do |child1|
-          methods = child1[:children].select {|y| y[:type] == 'method'}
-          method_hashes = methods.collect do |item2|
-            {name: item2[:name], level: item2[:level], args: item2[:arguments]}
+      def modules
+        collection = []
+        directories.each do |dir|
+          dir[:files].each do |file|
+            collection << {
+                directory: dir[:root],
+                classes: get_item(file[:hierarchy], 'module')
+            }
           end
-
-          {child1[:name] => {body: child1[:body], method_hashes: method_hashes}}
         end
+        collection
+      end
+
+      def methods
+        collection = []
+        directories.each do |dir|
+          dir[:files].each do |file|
+            collection << {
+                directory: dir[:root],
+                classes: get_item(file[:hierarchy], 'method')
+            }
+          end
+        end
+        collection
+      end
+
+      def blocks
+        collection = []
+        directories.each do |dir|
+          dir[:files].each do |file|
+            collection << {
+                directory: dir[:root],
+                classes: get_item(file[:hierarchy], 'block')
+            }
+          end
+        end
+        collection
+      end
+
+      def model_classes
+
+      end
+
+      def controller_classes
+
+      end
+
+      def get_item(array, type)
+        array.each do |hash|
+          if hash[:type] == type
+            @temp_collection << hash
+            get_item(hash[:children], type)
+          end
+        end
+        @temp_collection
       end
     end
   end
