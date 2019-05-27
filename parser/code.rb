@@ -126,7 +126,7 @@ module Stats
       # Controller Specific methods
       # -------------------------------- #
       def controller?
-        'controller' if superclass.include?('ApplicationController') || !current_file.scan(/\/controllers\//).empty?
+        'controller' if superclass.include?('ApplicationController')# || !current_file.scan(/\/controllers\//).empty?
       end
 
       # Model Specific methods

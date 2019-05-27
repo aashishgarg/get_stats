@@ -14,9 +14,9 @@ module Stats
         _method[:level] == 'instance' ? parse_instance_method : parse_class_method
         collection.map do
           {
-              source_class: {name: current_method[:parent][-1][:name], id: current_method[:parent][-1][:id]},
+              source_class: {name: current_method[:parent][-1][:name],id: current_method[:parent][-1][:id]},
               method: current_method[:name],
-              consumer_class: {name: target[:name], id: target[:id]}
+              consumer_class: {name: target[:name],id: target[:id]}
           }
         end
       end
@@ -24,7 +24,7 @@ module Stats
       # Instance Method Rules ->
       #         1. [.method_name]
       def parse_instance_method
-        # Class Method Rile -> [.method_name]
+        # Class Method Rules -> [.method_name]
         if target[:body].any? {|line| line.include?(".#{current_method[:name]}")}
           collection << current_method.dup
         end

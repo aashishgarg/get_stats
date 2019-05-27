@@ -6,10 +6,11 @@ module Stats
   module Parser
     class Json
       # --- Attribute Accessors --- #
-      attr_accessor :json, :temp_collection
+      attr_accessor :json, :temp_collection, :root
 
-      def initialize(source)
+      def initialize(source, root)
         @json = get_json(source)
+        @root = root
         set_defaults
       end
 
@@ -27,78 +28,66 @@ module Stats
         end
       end
 
-      def processes
-        json[:processes]
+      def process
+        json[:processes].select { |_process| _process[:repository][:root] == root }.last
       end
 
-      def repositories
-        processes.collect{ |process| process[:repository][:root] }
+      def repository
+        process[:repository]
       end
 
-      def directories
-        processes.collect { |process| { root: process[:repository][:root], files: process[:repository][:files] }}
+      def files
+        repository[:files]
       end
 
-      def classes
+      def _classes
         set_defaults
         collection = []
-        directories.each do |dir|
-          dir[:files].each do |file|
-            collection << { directory: dir[:root], classes: get_item(file[:hierarchy], 'class') }
-          end
-        end
-        collection.uniq
+        files.each { |file| collection << get_item(file[:hierarchy], 'class') }
+        collection.flatten.uniq
       end
 
-      def modules
-        set_defaults
-        collection = []
-        directories.each do |dir|
-          dir[:files].each do |file|
-            collection << { directory: dir[:root], modules: get_item(file[:hierarchy], 'module') }
-          end
-        end
-        collection.uniq
+      def _models
+        _classes.select { |_class| _class[:file_type] == 'model' }
       end
 
-      def methods
-        set_defaults
-        collection = []
-        directories.each do |dir|
-          dir[:files].each do |file|
-            collection << { directory: dir[:root], methods: get_item(file[:hierarchy], 'method') }
-          end
-        end
-        collection.uniq
+      def _controllers
+        _classes.select { |_class| _class[:file_type] == 'controller' }
       end
 
-      def blocks
+      def _modules
         set_defaults
         collection = []
-        directories.each do |dir|
-          dir[:files].each do |file|
-            collection << { directory: dir[:root], blocks: get_item(file[:hierarchy], 'block') }
-          end
-        end
-        collection.uniq
+        files.each { |file| collection << get_item(file[:hierarchy], 'module') }
+        collection.flatten.uniq
+      end
+
+      def _methods
+        set_defaults
+        collection = []
+        files.each { |file| collection << get_item(file[:hierarchy], 'method') }
+        collection.flatten.uniq
+      end
+
+      def _blocks
+        set_defaults
+        collection = []
+        files.each { |file| collection << get_item(file[:hierarchy], 'block') }
+        collection.flatten.uniq
       end
 
       def method_usages
         collection = []
-        classes.each do |item|
-          item[:classes].each do |_parent|
-            (item[:classes] - [_parent]).each do |_child|
-              _p_methods = _parent[:children].select{ |child| child[:type] == 'method' }
-              _p_methods.each do |_method|
-                collection << Stats::Parser::Finder.new.method(_method, _child)
-              end
+        _models.each do |_parent|
+          _p_methods = _parent[:children].select{ |child| child[:type] == 'method' }
+          _p_methods.each do |_method|
+            (_classes - [_parent]).each do |_child|
+              collection << Stats::Parser::Finder.new.method(_method, _child)
             end
           end
         end
         collection.reject(&:empty?)
       end
-
-
 
       def get_item(array, type)
         array = array.dup
