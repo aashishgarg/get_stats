@@ -89,6 +89,19 @@ module Stats
         collection.reject(&:empty?)
       end
 
+      def associations_usage
+        collection = []
+        _models.each do |_parent|
+          _associations = _parent[:associations]
+          _associations.each do |_association|
+            (_models - [_parent]).each do |_child|
+              collection << Stats::Parser::Finder.new.association(_parent, _child, _association)
+            end
+          end
+        end
+        collection.reject(&:empty?)
+      end
+
       def get_item(array, type)
         array = array.dup
         array.each do |hash|

@@ -1,12 +1,26 @@
+require 'byebug'
+require_relative './regex'
+
 module Stats
   module Parser
     class Finder
+      include Stats::Parser::Regex
       attr_accessor :collection, :current_method, :target
 
       def initialize
         @collection = []
         @current_method = {}
         @target = {}
+      end
+
+      def association(_parent, _child, _association)
+        hash = {
+            parent: _parent,
+            child: _child,
+            usages: []
+        }
+
+        _child[:associations]
       end
 
       def method(_method, _target)
@@ -24,8 +38,7 @@ module Stats
       # Instance Method Rules ->
       #         1. [.method_name]
       def parse_instance_method
-        # Class Method Rules -> [.method_name]
-        if target[:body].any? {|line| line.include?(".#{current_method[:name]}")}
+        if target[:body].any? {|line| line.scan(comment_regex).empty? && line.include?(".#{current_method[:name]}")}
           collection << current_method.dup
         end
       end

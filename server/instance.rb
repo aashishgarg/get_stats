@@ -1,6 +1,7 @@
 require 'json'
 require_relative './files'
 require_relative '../parser/code'
+require_relative '../parser/meta'
 
 module Stats
   module Server
@@ -21,7 +22,8 @@ module Stats
               start_time: command.start_time(pid),
               repository: {
                   root: root,
-                  files: process(Stats::Server::Files.new(root).all)
+                  structure: Stats::Parser::Meta.structure,
+                  files: process(Stats::Server::Files.new(root).all),
               }
           }
         end

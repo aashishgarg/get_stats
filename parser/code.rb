@@ -145,8 +145,8 @@ module Stats
         scan = line.scan(association_type_regex).flatten.last&.strip
         hash[:associations] << {
             type: scan,
-            name: line.scan(association_name_regex).last&.strip,
-            body: line
+            name: line.scan(association_name_regex).last&.strip.delete(',:'),
+            body: line.strip
         } if scan
         scan
       end
